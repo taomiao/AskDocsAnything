@@ -27,15 +27,11 @@ if [ "$#" -lt 1 ]; then
   exit 1
 fi
 
-if [ -n "${ASKDOCS_QUERY:-}" ]; then
-  QUERY="$ASKDOCS_QUERY"
-else
-  QUERY="$(osascript <<'APPLESCRIPT'
-set dialogResult to display dialog "Enter your AskDocsAnything query:" default answer "" buttons {"Cancel", "Ask"} default button "Ask"
-text returned of dialogResult
-APPLESCRIPT
-)"
+if [ -z "${ASKDOCS_QUERY:-}" ]; then
+  exec "${ASKDOCS_PYTHON:-python3}" -m askdocsanything.finder_gui "$@"
 fi
+
+QUERY="$ASKDOCS_QUERY"
 
 if [ -z "$QUERY" ]; then
   exit 0

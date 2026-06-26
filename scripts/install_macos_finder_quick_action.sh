@@ -9,11 +9,26 @@ RESOURCES_DIR="$CONTENTS_DIR/Resources"
 RUNNER="$REPO_ROOT/scripts/askdocsanything_finder.sh"
 VENV_DIR="$REPO_ROOT/.venv"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "python3 is required." >&2
+PYTHON_BIN=""
+for candidate in \
+  "$HOME/miniconda3/bin/python3" \
+  "$HOME/miniconda3/bin/python" \
+  "$(command -v python3 2>/dev/null || true)" \
+  "$(command -v python 2>/dev/null || true)" \
+  "/usr/bin/python3"
+do
+  if [ -n "$candidate" ] && [ -x "$candidate" ]; then
+    if "$candidate" -c 'import tkinter' >/dev/null 2>&1; then
+      PYTHON_BIN="$candidate"
+      break
+    fi
+  fi
+done
+
+if [ -z "$PYTHON_BIN" ]; then
+  echo "A Python interpreter with tkinter is required for the Finder GUI." >&2
   exit 1
 fi
-PYTHON_BIN="$(command -v python3)"
 
 if command -v codex >/dev/null 2>&1; then
   CODEX_BIN="$(command -v codex)"
@@ -24,6 +39,7 @@ else
   exit 1
 fi
 
+rm -rf "$VENV_DIR"
 "$PYTHON_BIN" -m venv "$VENV_DIR"
 "$VENV_DIR/bin/python" -m pip install -e "$REPO_ROOT"
 

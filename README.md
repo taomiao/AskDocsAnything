@@ -127,7 +127,7 @@ Then use Finder:
 Right-click a file or folder -> Quick Actions -> AskDocsAnything
 ```
 
-The action prompts for a query, runs AskDocsAnything, and opens a JSON result file in TextEdit.
+The action opens a small AskDocsAnything window, prompts for a query, shows an indeterminate progress bar while Codex is running, and renders the answer plus full JSON in the same window.
 
 Logs and generated result files are written to:
 
