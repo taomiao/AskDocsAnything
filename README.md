@@ -113,6 +113,34 @@ JSON output:
 askdocs /path/to/documents "列出所有风险项" --json
 ```
 
+## macOS Finder Quick Action
+
+Install the Finder right-click action:
+
+```bash
+scripts/install_macos_finder_quick_action.sh
+```
+
+Then use Finder:
+
+```text
+Right-click a file or folder -> Quick Actions -> AskDocsAnything
+```
+
+The action prompts for a query, runs AskDocsAnything, and opens a JSON result file in TextEdit.
+
+Logs and generated result files are written to:
+
+```text
+~/Library/Logs/AskDocsAnything/
+```
+
+If the action does not appear or seems stale, restart Finder:
+
+```bash
+killall Finder
+```
+
 ## How it works
 
 The SDK builds a manifest of supported files in the requested working directory, asks Codex to inspect only that directory, and requires the final answer to match a JSON Schema. Codex is instructed to cite exact source files and locations, and to mark answers as `not_found` instead of guessing.

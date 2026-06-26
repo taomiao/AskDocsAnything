@@ -238,7 +238,7 @@ export ASKDOCS_PYTHON="$VENV_DIR/bin/python"
     <key>presentationMode</key>
     <integer>15</integer>
     <key>processesInput</key>
-    <integer>0</integer>
+    <integer>1</integer>
     <key>serviceApplicationBundleID</key>
     <string>com.apple.finder</string>
     <key>serviceApplicationPath</key>
@@ -248,7 +248,7 @@ export ASKDOCS_PYTHON="$VENV_DIR/bin/python"
     <key>serviceOutputTypeIdentifier</key>
     <string>com.apple.Automator.nothing</string>
     <key>serviceProcessesInput</key>
-    <integer>0</integer>
+    <integer>1</integer>
   </dict>
 </dict>
 </plist>

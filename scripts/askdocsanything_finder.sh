@@ -1,24 +1,38 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ "$#" -lt 1 ]; then
-  osascript -e 'display alert "AskDocsAnything" message "Please select a file or folder first."'
-  exit 1
-fi
-
 if [ -n "${ASKDOCS_BIN:-}" ]; then
   ASKDOCS_COMMAND=("$ASKDOCS_BIN")
 else
   ASKDOCS_COMMAND=("${ASKDOCS_PYTHON:-python3}" -m askdocsanything.cli)
 fi
-OUTPUT_DIR="${TMPDIR:-/tmp}/AskDocsAnything"
-mkdir -p "$OUTPUT_DIR"
 
-QUERY="$(osascript <<'APPLESCRIPT'
+OUTPUT_DIR="$HOME/Library/Logs/AskDocsAnything"
+mkdir -p "$OUTPUT_DIR"
+RUN_LOG="$OUTPUT_DIR/finder-action.log"
+
+{
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] invoked"
+  echo "argc=$#"
+  printf 'arg=%s\n' "$@"
+  echo "ASKDOCS_PYTHON=${ASKDOCS_PYTHON:-}"
+  echo "ASKDOCS_BIN=${ASKDOCS_BIN:-}"
+} >> "$RUN_LOG"
+
+if [ "$#" -lt 1 ]; then
+  osascript -e 'display alert "AskDocsAnything" message "Please select a file or folder first."'
+  exit 1
+fi
+
+if [ -n "${ASKDOCS_QUERY:-}" ]; then
+  QUERY="$ASKDOCS_QUERY"
+else
+  QUERY="$(osascript <<'APPLESCRIPT'
 set dialogResult to display dialog "Enter your AskDocsAnything query:" default answer "" buttons {"Cancel", "Ask"} default button "Ask"
 text returned of dialogResult
 APPLESCRIPT
 )"
+fi
 
 if [ -z "$QUERY" ]; then
   exit 0
