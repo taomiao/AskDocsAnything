@@ -1,5 +1,7 @@
 # AskDocsAnything
 
+![AskDocsAnything Finder Quick Action](assets/askdocsanything-finder-preview.png)
+
 AskDocsAnything is a small Python SDK and CLI for using Codex as a document-grounded AI agent.
 Each query runs against a caller-specified file or working directory and returns structured answers with evidence.
 
