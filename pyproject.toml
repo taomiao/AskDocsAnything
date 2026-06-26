@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "askdocsanything"
+version = "0.1.0"
+description = "A Python wrapper around Codex for document-grounded QA with citations."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "AskDocsAnything" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+askdocs = "askdocsanything.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["askdocsanything*"]
+
+[tool.setuptools.package-data]
+askdocsanything = ["codex_answer.schema.json"]
