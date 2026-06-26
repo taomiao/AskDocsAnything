@@ -13,18 +13,20 @@ from tkinter.scrolledtext import ScrolledText
 
 from askdocsanything.agent import AskDocsAgent
 
-BG = "#f5f7fb"
-PANEL = "#ffffff"
-TEXT = "#182230"
-MUTED = "#667085"
-ACCENT = "#4f46e5"
-ACCENT_DARK = "#4338ca"
-ACCENT_SOFT = "#eef2ff"
-SECONDARY_BG = "#f8fafc"
-SECONDARY_ACTIVE = "#e0f2fe"
-BORDER = "#d8e0ec"
-SUCCESS = "#00876f"
-ERROR = "#c2410c"
+BG = "#071832"
+PANEL = "#0d2345"
+PANEL_2 = "#102b55"
+INPUT_BG = "#1b3158"
+TEXT = "#eef4ff"
+MUTED = "#9aa8c7"
+ACCENT = "#2f7cff"
+ACCENT_DARK = "#1f63e5"
+ACCENT_GLOW = "#7aa7ff"
+SECONDARY_BG = "#102747"
+SECONDARY_ACTIVE = "#173a68"
+BORDER = "#294a78"
+SUCCESS = "#70e4c1"
+ERROR = "#ff9a76"
 MONO = "Menlo"
 UI_FONT = "Helvetica"
 
@@ -93,18 +95,28 @@ class FinderAskDocsApp:
         self.style.configure("App.TFrame", background=BG)
         self.style.configure("Panel.TFrame", background=PANEL, borderwidth=1, relief="solid")
         self.style.configure("Title.TLabel", background=BG, foreground=TEXT, font=(UI_FONT, 20, "bold"))
+        self.style.configure("Logo.TLabel", background=BG, foreground=ACCENT_GLOW, font=(UI_FONT, 26, "bold"))
         self.style.configure("Subtitle.TLabel", background=BG, foreground=MUTED, font=(UI_FONT, 11))
-        self.style.configure("Field.TLabel", background=BG, foreground=TEXT, font=(UI_FONT, 11, "bold"))
+        self.style.configure("Field.TLabel", background=BG, foreground="#c8d6f7", font=(UI_FONT, 11, "bold"))
         self.style.configure("Status.TLabel", background=BG, foreground=MUTED, font=(UI_FONT, 11))
         self.style.configure(
             "Horizontal.TProgressbar",
-            troughcolor="#e6ebf4",
+            troughcolor="#163052",
             background=ACCENT,
-            bordercolor="#e6ebf4",
+            bordercolor="#163052",
             lightcolor=ACCENT,
             darkcolor=ACCENT,
         )
-        self.style.configure("TEntry", fieldbackground="#ffffff", foreground=TEXT, padding=8)
+        self.style.configure(
+            "TEntry",
+            fieldbackground=INPUT_BG,
+            foreground=TEXT,
+            insertcolor=TEXT,
+            bordercolor=BORDER,
+            lightcolor=BORDER,
+            darkcolor=BORDER,
+            padding=10,
+        )
 
     def _make_button(
         self,
@@ -120,12 +132,12 @@ class FinderAskDocsApp:
             bg = ACCENT
             fg = "#ffffff"
             active_bg = ACCENT_DARK
-            disabled_bg = "#d7dce8"
+            disabled_bg = "#263b61"
         else:
             bg = SECONDARY_BG
             fg = TEXT
             active_bg = SECONDARY_ACTIVE
-            disabled_bg = "#eef1f6"
+            disabled_bg = "#132541"
 
         return Button(
             parent,
@@ -137,10 +149,10 @@ class FinderAskDocsApp:
             fg=fg,
             activebackground=active_bg,
             activeforeground=fg,
-            disabledforeground="#98a2b3",
+            disabledforeground="#66789f",
             highlightthickness=1,
-            highlightbackground=BORDER,
-            highlightcolor=ACCENT,
+            highlightbackground=ACCENT if variant == "primary" else BORDER,
+            highlightcolor=ACCENT_GLOW,
             relief="flat",
             bd=0,
             padx=12,
@@ -153,9 +165,13 @@ class FinderAskDocsApp:
         outer = ttk.Frame(self.root, padding=(18, 16), style="App.TFrame")
         outer.pack(fill=BOTH, expand=True)
 
-        ttk.Label(outer, text="AskDocsAnything", style="Title.TLabel").pack(anchor="w")
+        header = ttk.Frame(outer, style="App.TFrame")
+        header.pack(fill=X)
+        ttk.Label(header, text="A", style="Logo.TLabel").pack(side=LEFT, padx=(0, 10))
+        ttk.Label(header, text="AskDocsAnything", style="Title.TLabel").pack(side=LEFT, anchor="center")
+
         ttk.Label(outer, text=self._selected_paths_text(), style="Subtitle.TLabel", wraplength=590, justify=LEFT).pack(
-            anchor="w", pady=(4, 12)
+            anchor="w", pady=(8, 12)
         )
 
         query_row = ttk.Frame(outer, style="App.TFrame")
@@ -211,9 +227,9 @@ class FinderAskDocsApp:
     def _configure_text_tags(self, widget: ScrolledText) -> None:
         widget.tag_configure("muted", foreground=MUTED, font=(UI_FONT, 11))
         widget.tag_configure("answer", foreground=TEXT, font=(UI_FONT, 14, "bold"), spacing3=8)
-        widget.tag_configure("label", foreground=MUTED, font=(UI_FONT, 11, "bold"))
+        widget.tag_configure("label", foreground="#b9c7e8", font=(UI_FONT, 11, "bold"))
         widget.tag_configure("value", foreground=SUCCESS, font=(UI_FONT, 12, "bold"))
-        widget.tag_configure("source", foreground="#344054", font=(UI_FONT, 11))
+        widget.tag_configure("source", foreground="#cbd7f2", font=(UI_FONT, 11))
         widget.tag_configure("error", foreground=ERROR, font=(UI_FONT, 12, "bold"))
         widget.tag_configure("mono", foreground=TEXT, font=(MONO, 12))
 
