@@ -15,8 +15,12 @@ if ! command -v python3 >/dev/null 2>&1; then
 fi
 PYTHON_BIN="$(command -v python3)"
 
-if ! command -v codex >/dev/null 2>&1; then
-  echo "codex CLI is required and must be available on PATH." >&2
+if command -v codex >/dev/null 2>&1; then
+  CODEX_BIN="$(command -v codex)"
+elif [ -x "/Applications/Codex.app/Contents/Resources/codex" ]; then
+  CODEX_BIN="/Applications/Codex.app/Contents/Resources/codex"
+else
+  echo "codex CLI is required and must be available on PATH or at /Applications/Codex.app/Contents/Resources/codex." >&2
   exit 1
 fi
 
@@ -127,6 +131,7 @@ cat > "$RESOURCES_DIR/document.wflow" <<WFLOW
           <key>COMMAND_STRING</key>
           <string>export PATH="/opt/homebrew/bin:/usr/local/bin:\$HOME/.local/bin:\$PATH"
 export ASKDOCS_PYTHON="$VENV_DIR/bin/python"
+export ASKDOCS_CODEX_BIN="$CODEX_BIN"
 "$RUNNER" "\$@"</string>
           <key>inputMethod</key>
           <integer>1</integer>

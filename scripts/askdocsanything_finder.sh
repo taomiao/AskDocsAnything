@@ -3,6 +3,8 @@ set -euo pipefail
 
 if [ -n "${ASKDOCS_BIN:-}" ]; then
   ASKDOCS_COMMAND=("$ASKDOCS_BIN")
+elif [ -n "${ASKDOCS_CODEX_BIN:-}" ]; then
+  ASKDOCS_COMMAND=("${ASKDOCS_PYTHON:-python3}" -m askdocsanything.cli --codex-bin "$ASKDOCS_CODEX_BIN")
 else
   ASKDOCS_COMMAND=("${ASKDOCS_PYTHON:-python3}" -m askdocsanything.cli)
 fi
@@ -16,6 +18,7 @@ RUN_LOG="$OUTPUT_DIR/finder-action.log"
   echo "argc=$#"
   printf 'arg=%s\n' "$@"
   echo "ASKDOCS_PYTHON=${ASKDOCS_PYTHON:-}"
+  echo "ASKDOCS_CODEX_BIN=${ASKDOCS_CODEX_BIN:-}"
   echo "ASKDOCS_BIN=${ASKDOCS_BIN:-}"
 } >> "$RUN_LOG"
 
