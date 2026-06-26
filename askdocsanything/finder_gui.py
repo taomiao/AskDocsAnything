@@ -7,11 +7,23 @@ import threading
 import time
 import traceback
 from pathlib import Path
-from tkinter import BOTH, END, LEFT, RIGHT, X, Button, Frame, Label, StringVar, Tk, Toplevel, messagebox
+from tkinter import BOTH, END, LEFT, RIGHT, X, Frame, StringVar, Tk, Toplevel, messagebox
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
 from askdocsanything.agent import AskDocsAgent
+
+BG = "#f7f8fb"
+PANEL = "#ffffff"
+TEXT = "#172033"
+MUTED = "#667085"
+ACCENT = "#2563eb"
+ACCENT_DARK = "#1d4ed8"
+BORDER = "#d9e0ea"
+SUCCESS = "#047857"
+ERROR = "#b42318"
+MONO = "Menlo"
+UI_FONT = "Helvetica"
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -33,6 +45,7 @@ class FinderAskDocsApp:
         self.root.title("AskDocsAnything")
         self.root.geometry("640x420")
         self.root.minsize(560, 360)
+        self.root.configure(bg=BG)
 
         self.status = StringVar(value="Ready")
         self.query = StringVar()
@@ -40,6 +53,7 @@ class FinderAskDocsApp:
         self.last_response: object | None = None
         self.last_output_path: Path | None = None
 
+        self._configure_style()
         self._build_ui()
         self._position_near_pointer(self.root, 640, 420)
         self._bring_to_front(self.root)
@@ -66,40 +80,106 @@ class FinderAskDocsApp:
         window.focus_force()
         window.after(1200, lambda: window.attributes("-topmost", False))
 
+    def _configure_style(self) -> None:
+        self.style = ttk.Style(self.root)
+        try:
+            self.style.theme_use("clam")
+        except Exception:
+            pass
+
+        self.style.configure("App.TFrame", background=BG)
+        self.style.configure("Panel.TFrame", background=PANEL, borderwidth=1, relief="solid")
+        self.style.configure("Title.TLabel", background=BG, foreground=TEXT, font=(UI_FONT, 20, "bold"))
+        self.style.configure("Subtitle.TLabel", background=BG, foreground=MUTED, font=(UI_FONT, 11))
+        self.style.configure("Field.TLabel", background=BG, foreground=TEXT, font=(UI_FONT, 11, "bold"))
+        self.style.configure("Status.TLabel", background=BG, foreground=MUTED, font=(UI_FONT, 11))
+        self.style.configure("Primary.TButton", font=(UI_FONT, 12, "bold"), padding=(16, 7))
+        self.style.configure("Secondary.TButton", font=(UI_FONT, 12), padding=(14, 7))
+        self.style.map(
+            "Primary.TButton",
+            foreground=[("disabled", "#98a2b3"), ("!disabled", "#ffffff")],
+            background=[("active", ACCENT_DARK), ("disabled", "#e4e7ec"), ("!disabled", ACCENT)],
+        )
+        self.style.map(
+            "Secondary.TButton",
+            foreground=[("disabled", "#98a2b3"), ("!disabled", TEXT)],
+            background=[("active", "#eef4ff"), ("disabled", "#f2f4f7"), ("!disabled", "#ffffff")],
+        )
+        self.style.configure(
+            "Horizontal.TProgressbar",
+            troughcolor="#e8edf5",
+            background=ACCENT,
+            bordercolor="#e8edf5",
+            lightcolor=ACCENT,
+            darkcolor=ACCENT,
+        )
+        self.style.configure("TEntry", fieldbackground="#ffffff", foreground=TEXT, padding=8)
+
     def _build_ui(self) -> None:
-        outer = Frame(self.root, padx=16, pady=14)
+        outer = ttk.Frame(self.root, padding=(18, 16), style="App.TFrame")
         outer.pack(fill=BOTH, expand=True)
 
-        Label(outer, text="AskDocsAnything", font=("Helvetica", 18, "bold")).pack(anchor="w")
-        Label(outer, text=self._selected_paths_text(), fg="#555", wraplength=590, justify=LEFT).pack(
+        ttk.Label(outer, text="AskDocsAnything", style="Title.TLabel").pack(anchor="w")
+        ttk.Label(outer, text=self._selected_paths_text(), style="Subtitle.TLabel", wraplength=590, justify=LEFT).pack(
             anchor="w", pady=(4, 12)
         )
 
-        query_row = Frame(outer)
+        query_row = ttk.Frame(outer, style="App.TFrame")
         query_row.pack(fill=X)
-        Label(query_row, text="Query").pack(anchor="w")
+        ttk.Label(query_row, text="Query", style="Field.TLabel").pack(anchor="w")
         self.query_entry = ttk.Entry(query_row, textvariable=self.query)
         self.query_entry.pack(fill=X, pady=(4, 10))
         self.query_entry.focus_set()
         self.query_entry.bind("<Return>", lambda _event: self._start_query())
 
-        controls = Frame(outer)
+        controls = ttk.Frame(outer, style="App.TFrame")
         controls.pack(fill=X, pady=(0, 10))
-        self.ask_button = Button(controls, text="Ask", command=self._start_query, width=10)
+        self.ask_button = ttk.Button(controls, text="Ask", command=self._start_query, width=10, style="Primary.TButton")
         self.ask_button.pack(side=LEFT)
-        self.copy_button = Button(controls, text="Copy", command=self._copy_output, width=10, state="disabled")
+        self.copy_button = ttk.Button(
+            controls, text="Copy", command=self._copy_output, width=10, state="disabled", style="Secondary.TButton"
+        )
         self.copy_button.pack(side=LEFT, padx=(8, 0))
-        self.detail_button = Button(controls, text="详细", command=self._open_detail_window, width=10, state="disabled")
+        self.detail_button = ttk.Button(
+            controls, text="详细", command=self._open_detail_window, width=10, state="disabled", style="Secondary.TButton"
+        )
         self.detail_button.pack(side=LEFT, padx=(8, 0))
-        Button(controls, text="Close", command=self.root.destroy, width=10).pack(side=RIGHT)
+        ttk.Button(controls, text="Close", command=self.root.destroy, width=10, style="Secondary.TButton").pack(
+            side=RIGHT
+        )
 
         self.progress = ttk.Progressbar(outer, mode="indeterminate")
         self.progress.pack(fill=X, pady=(0, 8))
-        Label(outer, textvariable=self.status, fg="#555").pack(anchor="w", pady=(0, 8))
+        ttk.Label(outer, textvariable=self.status, style="Status.TLabel").pack(anchor="w", pady=(0, 8))
 
-        self.output = ScrolledText(outer, wrap="word", font=("Helvetica", 13), height=9)
+        self.output = ScrolledText(
+            outer,
+            wrap="word",
+            font=(UI_FONT, 13),
+            height=9,
+            relief="flat",
+            borderwidth=0,
+            background=PANEL,
+            foreground=TEXT,
+            insertbackground=TEXT,
+            padx=14,
+            pady=12,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            highlightcolor=ACCENT,
+        )
         self.output.pack(fill=BOTH, expand=True)
+        self._configure_text_tags(self.output)
         self.output.insert(END, "Enter a query and click Ask.\n")
+
+    def _configure_text_tags(self, widget: ScrolledText) -> None:
+        widget.tag_configure("muted", foreground=MUTED, font=(UI_FONT, 11))
+        widget.tag_configure("answer", foreground=TEXT, font=(UI_FONT, 14, "bold"), spacing3=8)
+        widget.tag_configure("label", foreground=MUTED, font=(UI_FONT, 11, "bold"))
+        widget.tag_configure("value", foreground=SUCCESS, font=(UI_FONT, 12, "bold"))
+        widget.tag_configure("source", foreground="#344054", font=(UI_FONT, 11))
+        widget.tag_configure("error", foreground=ERROR, font=(UI_FONT, 12, "bold"))
+        widget.tag_configure("mono", foreground=TEXT, font=(MONO, 12))
 
     def _selected_paths_text(self) -> str:
         if len(self.paths) == 1:
@@ -116,7 +196,7 @@ class FinderAskDocsApp:
         self.copy_button.configure(state="disabled")
         self.detail_button.configure(state="disabled")
         self.output.delete("1.0", END)
-        self.output.insert(END, "Running AskDocsAnything...\n")
+        self.output.insert(END, "Running AskDocsAnything...\n", "muted")
         self.status.set("Running Codex document query...")
         self.progress.start(12)
 
@@ -179,15 +259,16 @@ class FinderAskDocsApp:
             self.detail_button.configure(state="normal")
             self.status.set(f"Failed. Log saved: {output_path}")
             self.output.delete("1.0", END)
-            self.output.insert(END, "AskDocsAnything failed.\n\n")
-            self.output.insert(END, error["error"])
+            self.output.insert(END, "AskDocsAnything failed.\n\n", "error")
+            self.output.insert(END, error["error"], "source")
             self._bring_to_front(self.root)
 
         self.root.after(100, self._poll_events)
 
     def _show_response(self, query: str, response: object, output_path: Path) -> None:
         self.output.delete("1.0", END)
-        self.output.insert(END, f"Query: {query}\n\n")
+        self.output.insert(END, "Query\n", "label")
+        self.output.insert(END, f"{query}\n\n", "source")
 
         if isinstance(response, dict) and "results" in response:
             self._insert_compact_summary(response)
@@ -197,22 +278,25 @@ class FinderAskDocsApp:
                 self._insert_compact_summary(item.get("response", {}))
                 self.output.insert(END, "\n")
 
-        self.output.insert(END, f"\nSaved: {output_path}\n")
+        self.output.insert(END, "\nSaved\n", "label")
+        self.output.insert(END, f"{output_path}\n", "muted")
 
     def _insert_compact_summary(self, response: dict) -> None:
         for result in response.get("results", []):
-            self.output.insert(END, f"{result.get('answer', '')}\n\n")
+            self.output.insert(END, f"{result.get('answer', '')}\n\n", "answer")
             value = result.get("value")
             if value:
                 display_value = value.get("display_value") or _first_present_value(value)
                 if display_value:
-                    self.output.insert(END, f"Value: {display_value}\n")
+                    self.output.insert(END, "Value  ", "label")
+                    self.output.insert(END, f"{display_value}\n", "value")
             citations = result.get("citations", [])
             if citations:
                 first = citations[0]
                 source = first.get("file", "")
                 location = first.get("location", "")
-                self.output.insert(END, f"Source: {source} {location}\n")
+                self.output.insert(END, "Source ", "label")
+                self.output.insert(END, f"{source} {location}\n", "source")
             self.output.insert(END, "\n")
 
     def _insert_detailed_summary(self, widget: ScrolledText, response: dict) -> None:
@@ -248,19 +332,34 @@ class FinderAskDocsApp:
         detail.title("AskDocsAnything Details")
         detail.geometry("920x720")
         detail.minsize(760, 560)
+        detail.configure(bg=BG)
         self._position_near_pointer(detail, 920, 720)
         self._bring_to_front(detail)
 
-        outer = Frame(detail, padx=16, pady=14)
+        outer = ttk.Frame(detail, padding=(18, 16), style="App.TFrame")
         outer.pack(fill=BOTH, expand=True)
 
         header = f"Query: {self.last_query}"
         if self.last_output_path is not None:
             header += f"\nSaved: {self.last_output_path}"
-        Label(outer, text=header, justify=LEFT, anchor="w").pack(fill=X, pady=(0, 10))
+        ttk.Label(outer, text=header, justify=LEFT, anchor="w", style="Subtitle.TLabel").pack(fill=X, pady=(0, 10))
 
-        text = ScrolledText(outer, wrap="word", font=("Menlo", 12))
+        text = ScrolledText(
+            outer,
+            wrap="word",
+            font=(MONO, 12),
+            relief="flat",
+            borderwidth=0,
+            background=PANEL,
+            foreground=TEXT,
+            padx=14,
+            pady=12,
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            highlightcolor=ACCENT,
+        )
         text.pack(fill=BOTH, expand=True)
+        self._configure_text_tags(text)
 
         response = self.last_response
         if isinstance(response, dict) and "results" in response:
