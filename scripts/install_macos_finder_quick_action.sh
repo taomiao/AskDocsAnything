@@ -5,6 +5,7 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVICE_NAME="AskDocsAnything"
 SERVICE_DIR="$HOME/Library/Services/$SERVICE_NAME.workflow"
 CONTENTS_DIR="$SERVICE_DIR/Contents"
+RESOURCES_DIR="$CONTENTS_DIR/Resources"
 RUNNER="$REPO_ROOT/scripts/askdocsanything_finder.sh"
 VENV_DIR="$REPO_ROOT/.venv"
 
@@ -23,17 +24,22 @@ fi
 "$VENV_DIR/bin/python" -m pip install -e "$REPO_ROOT"
 
 chmod +x "$RUNNER"
-mkdir -p "$CONTENTS_DIR"
+rm -rf "$SERVICE_DIR"
+mkdir -p "$RESOURCES_DIR"
 
 cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>en_US</string>
   <key>CFBundleIdentifier</key>
   <string>com.askdocsanything.finder.quickaction</string>
   <key>CFBundleName</key>
   <string>$SERVICE_NAME</string>
+  <key>CFBundleShortVersionString</key>
+  <string>1.0</string>
   <key>NSServices</key>
   <array>
     <dict>
@@ -44,13 +50,14 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
       </dict>
       <key>NSMessage</key>
       <string>runWorkflowAsService</string>
+      <key>NSRequiredContext</key>
+      <dict>
+        <key>NSApplicationIdentifier</key>
+        <string>com.apple.finder</string>
+      </dict>
       <key>NSSendFileTypes</key>
       <array>
         <string>public.item</string>
-      </array>
-      <key>NSSendTypes</key>
-      <array>
-        <string>NSFilenamesPboardType</string>
       </array>
     </dict>
   </array>
@@ -58,7 +65,7 @@ cat > "$CONTENTS_DIR/Info.plist" <<PLIST
 </plist>
 PLIST
 
-cat > "$CONTENTS_DIR/document.wflow" <<WFLOW
+cat > "$RESOURCES_DIR/document.wflow" <<WFLOW
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -238,7 +245,7 @@ export ASKDOCS_PYTHON="$VENV_DIR/bin/python"
     <key>presentationMode</key>
     <integer>15</integer>
     <key>processesInput</key>
-    <integer>1</integer>
+    <integer>0</integer>
     <key>serviceApplicationBundleID</key>
     <string>com.apple.finder</string>
     <key>serviceApplicationPath</key>
@@ -248,11 +255,30 @@ export ASKDOCS_PYTHON="$VENV_DIR/bin/python"
     <key>serviceOutputTypeIdentifier</key>
     <string>com.apple.Automator.nothing</string>
     <key>serviceProcessesInput</key>
-    <integer>1</integer>
+    <integer>0</integer>
+    <key>workflowTypeIdentifier</key>
+    <string>com.apple.Automator.servicesMenu</string>
   </dict>
 </dict>
 </plist>
 WFLOW
+
+cat > "$CONTENTS_DIR/version.plist" <<PLIST
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>BuildVersion</key>
+  <string>1</string>
+  <key>ProjectName</key>
+  <string>$SERVICE_NAME</string>
+  <key>SourceVersion</key>
+  <string>1</string>
+</dict>
+</plist>
+PLIST
+
+xattr -cr "$SERVICE_DIR" || true
 
 /System/Library/CoreServices/pbs -flush || true
 
