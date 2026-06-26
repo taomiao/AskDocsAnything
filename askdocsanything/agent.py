@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Sequence
 
 from askdocsanything.codex import CodexClient
-from askdocsanything.documents import discover_documents, image_paths
+from askdocsanything.documents import discover_documents, image_paths, resolve_document_root
 from askdocsanything.models import AskDocsResponse, QueryResult
 
 
@@ -26,14 +26,15 @@ class AskDocsAgent:
         self.max_attached_images = max_attached_images
 
     def ask(self, *, workdir: str | Path, queries: str | Sequence[str]) -> AskDocsResponse:
-        root = Path(workdir).expanduser().resolve()
+        target = Path(workdir).expanduser().resolve()
+        root = resolve_document_root(target)
         normalized_queries = [queries] if isinstance(queries, str) else list(queries)
         if not normalized_queries:
             raise ValueError("At least one query is required.")
 
-        documents = discover_documents(root)
+        documents = discover_documents(target)
         if not documents:
-            raise ValueError(f"No supported documents found in {root}.")
+            raise ValueError(f"No supported documents found in {target}.")
 
         prompt = self._build_prompt(root, normalized_queries, documents)
         attached_images = image_paths(root, documents, self.max_attached_images)
@@ -46,7 +47,7 @@ class AskDocsAgent:
         results = [QueryResult.from_dict(item) for item in payload.get("results", [])]
         self._validate_results(results, documents)
         return AskDocsResponse(
-            workdir=str(root),
+            workdir=str(target),
             results=results,
             documents=documents,
             raw_response=raw_response,

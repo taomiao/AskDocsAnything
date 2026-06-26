@@ -30,15 +30,28 @@ SUPPORTED_EXTENSIONS: dict[str, str] = {
 }
 
 
-def discover_documents(workdir: str | Path) -> list[DocumentInfo]:
-    root = Path(workdir).expanduser().resolve()
-    if not root.exists():
-        raise FileNotFoundError(f"Document directory does not exist: {root}")
-    if not root.is_dir():
-        raise NotADirectoryError(f"Document workdir must be a directory: {root}")
+def resolve_document_root(path: str | Path) -> Path:
+    target = Path(path).expanduser().resolve()
+    if not target.exists():
+        raise FileNotFoundError(f"Document path does not exist: {target}")
+    if target.is_file():
+        return target.parent
+    if target.is_dir():
+        return target
+    raise ValueError(f"Document path must be a file or directory: {target}")
 
+
+def discover_documents(workdir: str | Path) -> list[DocumentInfo]:
+    target = Path(workdir).expanduser().resolve()
+    root = resolve_document_root(target)
     documents: list[DocumentInfo] = []
-    for path in sorted(root.rglob("*")):
+    if target.is_file():
+        kind = SUPPORTED_EXTENSIONS.get(target.suffix.lower())
+        if kind is None:
+            return []
+        return [DocumentInfo.from_path(root, target, kind)]
+
+    for path in sorted(target.rglob("*")):
         if not path.is_file():
             continue
         kind = SUPPORTED_EXTENSIONS.get(path.suffix.lower())
@@ -49,7 +62,7 @@ def discover_documents(workdir: str | Path) -> list[DocumentInfo]:
 
 
 def image_paths(workdir: str | Path, documents: list[DocumentInfo], max_images: int) -> list[Path]:
-    root = Path(workdir).expanduser().resolve()
+    root = resolve_document_root(workdir)
     paths: list[Path] = []
     for document in documents:
         if document.kind != "image":

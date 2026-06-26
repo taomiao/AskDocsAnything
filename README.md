@@ -1,7 +1,7 @@
 # AskDocsAnything
 
 AskDocsAnything is a small Python SDK and CLI for using Codex as a document-grounded AI agent.
-Each query runs against a caller-specified working directory and returns structured answers with evidence.
+Each query runs against a caller-specified file or working directory and returns structured answers with evidence.
 
 Supported document extensions:
 
@@ -91,6 +91,12 @@ Each result also includes an `evidence_chain` array for auditability:
 
 ```bash
 askdocs /path/to/documents "总结这批文档中的关键收入数据，并给出处"
+```
+
+You can also query a single supported file:
+
+```bash
+askdocs /path/to/report.pdf "这份报告的发布日期是什么？" --json
 ```
 
 Batch mode:

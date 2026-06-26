@@ -32,6 +32,17 @@ def test_discover_documents_filters_supported_files(tmp_path: Path) -> None:
     assert {document.kind for document in documents} == {"powerpoint", "text"}
 
 
+def test_discover_documents_accepts_single_file(tmp_path: Path) -> None:
+    file_path = tmp_path / "notes.txt"
+    file_path.write_text("hello", encoding="utf-8")
+
+    documents = discover_documents(file_path)
+
+    assert len(documents) == 1
+    assert documents[0].path == "notes.txt"
+    assert documents[0].kind == "text"
+
+
 def test_agent_returns_structured_response(tmp_path: Path) -> None:
     (tmp_path / "notes.txt").write_text("Revenue was 42.", encoding="utf-8")
     fake = FakeCodex(

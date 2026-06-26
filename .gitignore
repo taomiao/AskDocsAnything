@@ -11,6 +11,7 @@ venv/
 dist/
 build/
 *.egg-info/
+*.log
 
 # Local/private document fixtures
 test_data/

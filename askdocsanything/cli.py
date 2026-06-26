@@ -12,7 +12,7 @@ def build_parser() -> argparse.ArgumentParser:
         prog="askdocs",
         description="Ask document-grounded questions with Codex and return cited answers.",
     )
-    parser.add_argument("workdir", help="Directory containing documents to query.")
+    parser.add_argument("workdir", help="File or directory containing documents to query.")
     parser.add_argument("prompt", nargs="?", help="Single query. Use --query for batch mode.")
     parser.add_argument(
         "--query",
