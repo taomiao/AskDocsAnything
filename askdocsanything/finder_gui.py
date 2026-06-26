@@ -7,21 +7,24 @@ import threading
 import time
 import traceback
 from pathlib import Path
-from tkinter import BOTH, END, LEFT, RIGHT, X, Frame, StringVar, Tk, Toplevel, messagebox
+from tkinter import BOTH, END, LEFT, RIGHT, X, Button, Frame, StringVar, Tk, Toplevel, messagebox
 from tkinter import ttk
 from tkinter.scrolledtext import ScrolledText
 
 from askdocsanything.agent import AskDocsAgent
 
-BG = "#f7f8fb"
+BG = "#f5f7fb"
 PANEL = "#ffffff"
-TEXT = "#172033"
+TEXT = "#182230"
 MUTED = "#667085"
-ACCENT = "#2563eb"
-ACCENT_DARK = "#1d4ed8"
-BORDER = "#d9e0ea"
-SUCCESS = "#047857"
-ERROR = "#b42318"
+ACCENT = "#4f46e5"
+ACCENT_DARK = "#4338ca"
+ACCENT_SOFT = "#eef2ff"
+SECONDARY_BG = "#f8fafc"
+SECONDARY_ACTIVE = "#e0f2fe"
+BORDER = "#d8e0ec"
+SUCCESS = "#00876f"
+ERROR = "#c2410c"
 MONO = "Menlo"
 UI_FONT = "Helvetica"
 
@@ -93,27 +96,58 @@ class FinderAskDocsApp:
         self.style.configure("Subtitle.TLabel", background=BG, foreground=MUTED, font=(UI_FONT, 11))
         self.style.configure("Field.TLabel", background=BG, foreground=TEXT, font=(UI_FONT, 11, "bold"))
         self.style.configure("Status.TLabel", background=BG, foreground=MUTED, font=(UI_FONT, 11))
-        self.style.configure("Primary.TButton", font=(UI_FONT, 12, "bold"), padding=(16, 7))
-        self.style.configure("Secondary.TButton", font=(UI_FONT, 12), padding=(14, 7))
-        self.style.map(
-            "Primary.TButton",
-            foreground=[("disabled", "#98a2b3"), ("!disabled", "#ffffff")],
-            background=[("active", ACCENT_DARK), ("disabled", "#e4e7ec"), ("!disabled", ACCENT)],
-        )
-        self.style.map(
-            "Secondary.TButton",
-            foreground=[("disabled", "#98a2b3"), ("!disabled", TEXT)],
-            background=[("active", "#eef4ff"), ("disabled", "#f2f4f7"), ("!disabled", "#ffffff")],
-        )
         self.style.configure(
             "Horizontal.TProgressbar",
-            troughcolor="#e8edf5",
+            troughcolor="#e6ebf4",
             background=ACCENT,
-            bordercolor="#e8edf5",
+            bordercolor="#e6ebf4",
             lightcolor=ACCENT,
             darkcolor=ACCENT,
         )
         self.style.configure("TEntry", fieldbackground="#ffffff", foreground=TEXT, padding=8)
+
+    def _make_button(
+        self,
+        parent: Frame,
+        *,
+        text: str,
+        command: object,
+        variant: str = "secondary",
+        width: int = 10,
+        state: str = "normal",
+    ) -> Button:
+        if variant == "primary":
+            bg = ACCENT
+            fg = "#ffffff"
+            active_bg = ACCENT_DARK
+            disabled_bg = "#d7dce8"
+        else:
+            bg = SECONDARY_BG
+            fg = TEXT
+            active_bg = SECONDARY_ACTIVE
+            disabled_bg = "#eef1f6"
+
+        return Button(
+            parent,
+            text=text,
+            command=command,
+            width=width,
+            state=state,
+            bg=bg,
+            fg=fg,
+            activebackground=active_bg,
+            activeforeground=fg,
+            disabledforeground="#98a2b3",
+            highlightthickness=1,
+            highlightbackground=BORDER,
+            highlightcolor=ACCENT,
+            relief="flat",
+            bd=0,
+            padx=12,
+            pady=7,
+            cursor="pointinghand",
+            font=(UI_FONT, 12, "bold" if variant == "primary" else "normal"),
+        )
 
     def _build_ui(self) -> None:
         outer = ttk.Frame(self.root, padding=(18, 16), style="App.TFrame")
@@ -134,17 +168,19 @@ class FinderAskDocsApp:
 
         controls = ttk.Frame(outer, style="App.TFrame")
         controls.pack(fill=X, pady=(0, 10))
-        self.ask_button = ttk.Button(controls, text="Ask", command=self._start_query, width=10, style="Primary.TButton")
+        self.ask_button = self._make_button(
+            controls, text="Ask", command=self._start_query, width=10, variant="primary"
+        )
         self.ask_button.pack(side=LEFT)
-        self.copy_button = ttk.Button(
-            controls, text="Copy", command=self._copy_output, width=10, state="disabled", style="Secondary.TButton"
+        self.copy_button = self._make_button(
+            controls, text="Copy", command=self._copy_output, width=10, state="disabled"
         )
         self.copy_button.pack(side=LEFT, padx=(8, 0))
-        self.detail_button = ttk.Button(
-            controls, text="详细", command=self._open_detail_window, width=10, state="disabled", style="Secondary.TButton"
+        self.detail_button = self._make_button(
+            controls, text="详细", command=self._open_detail_window, width=10, state="disabled"
         )
         self.detail_button.pack(side=LEFT, padx=(8, 0))
-        ttk.Button(controls, text="Close", command=self.root.destroy, width=10, style="Secondary.TButton").pack(
+        self._make_button(controls, text="Close", command=self.root.destroy, width=10).pack(
             side=RIGHT
         )
 
