@@ -41,10 +41,30 @@ class FinderAskDocsApp:
         self.last_output_path: Path | None = None
 
         self._build_ui()
+        self._position_near_pointer(self.root, 640, 420)
+        self._bring_to_front(self.root)
 
     def run(self) -> None:
         self.root.after(100, self._poll_events)
         self.root.mainloop()
+
+    def _position_near_pointer(self, window: Tk | Toplevel, width: int, height: int) -> None:
+        window.update_idletasks()
+        pointer_x = window.winfo_pointerx()
+        pointer_y = window.winfo_pointery()
+        screen_w = window.winfo_screenwidth()
+        screen_h = window.winfo_screenheight()
+
+        x = min(max(pointer_x + 18, 0), max(screen_w - width - 20, 0))
+        y = min(max(pointer_y + 18, 0), max(screen_h - height - 60, 0))
+        window.geometry(f"{width}x{height}+{x}+{y}")
+
+    def _bring_to_front(self, window: Tk | Toplevel) -> None:
+        window.update_idletasks()
+        window.attributes("-topmost", True)
+        window.lift()
+        window.focus_force()
+        window.after(1200, lambda: window.attributes("-topmost", False))
 
     def _build_ui(self) -> None:
         outer = Frame(self.root, padx=16, pady=14)
@@ -150,6 +170,7 @@ class FinderAskDocsApp:
             self.detail_button.configure(state="normal")
             self.status.set(f"Done in {elapsed:.1f}s. Saved: {output_path}")
             self._show_response(query, response, output_path)
+            self._bring_to_front(self.root)
         else:
             error, output_path = payload
             self.last_query = self.query.get().strip()
@@ -160,6 +181,7 @@ class FinderAskDocsApp:
             self.output.delete("1.0", END)
             self.output.insert(END, "AskDocsAnything failed.\n\n")
             self.output.insert(END, error["error"])
+            self._bring_to_front(self.root)
 
         self.root.after(100, self._poll_events)
 
@@ -226,6 +248,8 @@ class FinderAskDocsApp:
         detail.title("AskDocsAnything Details")
         detail.geometry("920x720")
         detail.minsize(760, 560)
+        self._position_near_pointer(detail, 920, 720)
+        self._bring_to_front(detail)
 
         outer = Frame(detail, padx=16, pady=14)
         outer.pack(fill=BOTH, expand=True)
